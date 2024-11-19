@@ -27,6 +27,7 @@ __all__ = ["Button", "Checkbutton", "Combobox", "Entry", "Frame", "Label",
 
 import tkinter
 from tkinter import _flatten, _join, _stringify, _splitdict
+import ctypes
 
 
 def _format_optvalue(value, script=False):
@@ -645,6 +646,19 @@ class Entry(Widget, tkinter.Entry):
 
             none, key, focus, focusin, focusout, all
         """
+        # Scale font with DPI
+        if "font" not in kw.keys():
+            user32 = ctypes.windll.user32
+            gdi32 = ctypes.windll.gdi32
+            
+            # Get the screen DPI
+            hdc = user32.GetDC(0)
+            dpi = gdi32.GetDeviceCaps(hdc, 88)  # 88 = LOGPIXELSX
+            user32.ReleaseDC(0, hdc)
+            
+            # Calculate scaling factor
+            scale = dpi / 96.0
+            kw['font'] = ("Arial", int(10*scale))
         Widget.__init__(self, master, widget or "ttk::entry", kw)
 
 
